@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>SCL-90症状自评量表 - 专业版</title>
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; color: #333; }
+        .container { background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
+        .instruction { background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin-bottom: 25px; font-size: 0.95em; line-height: 1.6; }
+        .question { margin-bottom: 20px; padding: 15px; border-left: 4px solid #3498db; background-color: #fafafa; border-radius: 0 5px 5px 0; }
+        .question p { font-weight: bold; margin-top: 0; margin-bottom: 10px; font-size: 1.05em; }
+        .options label { display: inline-block; margin-right: 20px; margin-bottom: 8px; cursor: pointer; }
+        .options input { margin-right: 6px; }
+        button { display: block; width: 200px; margin: 30px auto; background: linear-gradient(135deg, #3498db, #2c3e50); color: white; padding: 12px 20px; border: none; border-radius: 25px; cursor: pointer; font-size: 1.1em; transition: all 0.3s ease; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        #result { margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 10px; display: none; border-left: 5px solid #27ae60; }
+        #result h2 { color: #27ae60; margin-top: 0; }
+        .factor { margin-bottom: 15px; padding: 12px; background-color: white; border-radius: 5px; border-left: 3px solid #3498db; }
+        .disclaimer { margin-top: 40px; padding: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; font-size: 0.9em; color: #856404; }
+        .score-info { font-size: 1.2em; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SCL-90症状自评量表</h1>
+        
+        <div class="instruction">
+            <p><strong>指导语：</strong>请仔细阅读以下90个条目，根据您<strong>最近一周</strong>（包括今天）的实际感觉，选择最符合您情况的选项。答案没有对错之分，请如实回答。</p>
+        </div>
+
+        <form id="test-form">
+            <!-- 题目1-90将由下面的JavaScript动态生成 -->
+            <div id="questions-container"></div>
+            
+            <button type="submit">提交测试，获取专业报告</button>
+        </form>
+
+        <div id="result">
+            <h2>🎯 您的专业测评报告</h2>
+            <div class="score-info">
+                <p><strong>总分：</strong><span id="total-score">0</span></p>
+                <p><strong>总均分：</strong><span id="average-score">0</span></p>
+            </div>
+            <div id="factor-analysis">
+                <!-- 因子分析结果将在这里动态生成 -->
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background-color: #e8f6f3; border-radius: 5px;">
+                <p><strong>💡 重要提示：</strong>本报告仅供参考，不能替代专业诊断。如果您的分数较高或感到困扰，建议寻求专业心理咨询师的帮助。</p>
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            <p><strong>免责声明：</strong>本测试结果仅供参考，不可作为专业诊断依据。任何心理测验都有其局限性，如果您感到困扰，请务必寻求正规医院心理科或精神科的专业帮助。</p>
+        </div>
+    </div>
+
+    <script>
+        // SCL-90完整题目
+        const questions = [
+            "头痛",
+            "神经过敏，心中不踏实",
+            "头脑中有不必要的想法或字句盘旋",
+            "头昏或昏倒",
+            "对异性的兴趣减退",
+            "对旁人责备求全",
+            "感到别人能控制您的思想",
+            "责怪别人制造麻烦",
+            "忘记性大",
+            "担心自己的衣饰整齐及仪态的端正",
+            "容易烦恼和激动",
+            "胸痛",
+            "害怕空旷的场所或街道",
+            "感到自己的精力下降，活动减慢",
+            "想结束自己的生命",
+            "听到旁人听不到的声音",
+            "发抖",
+            "感到大多数人都不可信任",
+            "胃口不好",
+            "容易哭泣",
+            "同异性相处时感到害羞不自在",
+            "感到受骗，中了圈套或有人想抓住您",
+            "无缘无故地突然感到害怕",
+            "自己不能控制地大发脾气",
+            "怕单独出门",
+            "经常责怪自己",
+            "腰痛",
+            "感到难以完成任务",
+            "感到孤独",
+            "感到苦闷",
+            "过分担忧",
+            "对事物不感兴趣",
+            "感到害怕",
+            "您的感情容易受到伤害",
+            "旁人能知道您的私下想法",
+            "感到别人不理解您、不同情您",
+            "感到人们对您不友好，不喜欢您",
+            "做事必须做得很慢以保证做得正确",
+            "心跳得很厉害",
+            "恶心或胃部不舒服",
+            "感到比不上他人",
+            "肌肉酸痛",
+            "感到有人在监视您、谈论您",
+            "难以入睡",
+            "做事必须反复检查",
+            "难以作出决定",
+            "怕乘电车、公共汽车、地铁或火车",
+            "呼吸有困难",
+            "一阵阵发冷或发热",
+            "因为感到害怕而避开某些东西、场合或活动",
+            "脑子变空了",
+            "身体发麻或刺痛",
+            "喉咙有梗塞感",
+            "感到没有前途没有希望",
+            "不能集中注意",
+            "感到身体的某一部分软弱无力",
+            "感到紧张或容易紧张",
+            "感到手或脚发重",
+            "想到死亡的事",
+            "吃得太多",
+            "当别人看着您或谈论您时感到不自在",
+            "有一些不属于您自己的想法",
+            "有想打人或伤害他人的冲动",
+            "醒得太早",
+            "必须反复洗手、点数目或触摸某些东西",
+            "睡得不稳不深",
+            "有想摔坏或破坏东西的冲动",
+            "有一些别人没有的想法或念头",
+            "感到对别人神经过敏",
+            "在商店或电影院等人多的地方感到不自在",
+            "感到任何事情都很困难",
+            "一阵阵恐惧或惊恐",
+            "感到在公共场合吃东西很不舒服",
+            "经常与人争论",
+            "单独一人时神经很紧张",
+            "别人对您的成绩没有作出恰当的评价",
+            "即使和别人在一起也感到孤单",
+            "感到坐立不安心神不定",
+            "感到自己没有什么价值",
+            "感到熟悉的东西变成陌生或不象是真的",
+            "大叫或摔东西",
+            "害怕会在公共场合昏倒",
+            "感到别人想占您的便宜",
+            "为一些有关“性”的想法而很苦恼",
+            "您认为应该因为自己的过错而受到惩罚",
+            "感到要赶快把事情做完",
+            "感到自己的身体有严重问题",
+            "从未感到和其他人很亲近",
+            "感到自己有罪",
+            "感到自己的脑子有毛病"
+        ];
+
+        // 因子分组 (题目编号从0开始)
+        const factors = {
+            "躯体化": [0, 3, 11, 26, 39, 41, 47, 51, 52, 55, 57],
+            "强迫症状": [2, 8, 9, 27, 37, 44, 45, 50, 54, 64],
+            "人际关系敏感": [5, 20, 33, 35, 36, 40, 60, 68, 72],
+            "抑郁": [4, 13, 14, 19, 21, 25, 28, 29, 30, 53, 70, 78],
+            "焦虑": [1, 16, 22, 32, 38, 56, 66, 77, 79, 85],
+            "敌对": [10, 23, 62, 66, 73, 80],
+            "恐怖": [12, 24, 46, 49, 69, 74, 81],
+            "偏执": [7, 17, 42, 67, 75, 82],
+            "精神病性": [6, 15, 34, 61, 63, 71, 76, 83, 84, 89],
+            "其他（睡眠饮食）": [18, 43, 58, 59, 64, 65]
+        };
+
+        // 动态生成题目
+        const container = document.getElementById('questions-container');
+        questions.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            questionDiv.innerHTML = `
+                <p>${index + 1}. ${question}</p>
+                <div class="options">
+                    <label><input type="radio" name="q${index}" value="1" required> 没有</label>
+                    <label><input type="radio" name="q${index}" value="2"> 很轻</label>
+                    <label><input type="radio" name="q${index}" value="3"> 中等</label>
+                    <label><input type="radio" name="q${index}" value="4"> 偏重</label>
+                    <label><input type="radio" name="q${index}" value="5"> 严重</label>
+                </div>
+            `;
+            container.appendChild(questionDiv);
+        });
+
+        // 处理表单提交
+        document.getElementById('test-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // 收集所有答案
+            let scores = [];
+            let allAnswered = true;
+
+            for (let i = 0; i < questions.length; i++) {
+                const selectedOption = document.querySelector(`input[name="q${i}"]:checked`);
+                if (selectedOption) {
+                    scores.push(parseInt(selectedOption.value));
+                } else {
+                    allAnswered = false;
+                    alert(`请回答第 ${i + 1} 题`);
+                    break;
+                }
+            }
+
+            if (!allAnswered) return;
+
+            // 计算总分和均分
+            const totalScore = scores.reduce((sum, score) => sum + score, 0);
+            const averageScore = (totalScore / questions.length).toFixed(2);
+
+            // 计算因子分
+            let factorAnalysis = '<h3>📊 各因子分析</h3>';
+            
+            for (const [factorName, questionIndices] of Object.entries(factors)) {
+                let factorTotal = 0;
+                questionIndices.forEach(index => {
+                    factorTotal += scores[index];
+                });
+                const factorAverage = (factorTotal / questionIndices.length).toFixed(2);
+                
+                // 判断程度
+                let level = "", description = "";
+                if (factorAverage < 1.5) {
+                    level = "正常范围"; description = "该方面状况良好";
+                } else if (factorAverage < 2.5) {
+                    level = "轻微症状"; description = "可能存在轻度困扰";
+                } else if (factorAverage < 3.5) {
+                    level = "中度症状"; description = "存在明显困扰，建议关注";
+                } else {
+                    level = "重度症状"; description = "困扰程度较重，建议寻求专业帮助";
+                }
+
+                factorAnalysis += `
+                    <div class="factor">
+                        <strong>${factorName}</strong><br>
+                        均分: ${factorAverage}分 | 程度: ${level}<br>
+                        说明: ${description}
+                    </div>
+                `;
+            }
+
+            // 显示结果
+            document.getElementById('total-score').textContent = totalScore;
+            document.getElementById('average-score').textContent = averageScore;
+            document.getElementById('factor-analysis').innerHTML = factorAnalysis;
+            document.getElementById('result').style.display = 'block';
+            
+            // 滚动到结果
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
