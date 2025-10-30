@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SCL-90症状自评量表</title>
+    <!-- 引入 html2canvas 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -371,6 +373,42 @@
         .interpretation-content p:last-child {
             margin-bottom: 0;
         }
+
+        /* 新增保存按钮样式 */
+        .save-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .save-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        #save-image-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
+        }
+        #save-image-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+        }
+        #new-test-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 3px 8px rgba(231, 76, 60, 0.3);
+        }
+        #new-test-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+        }
         
         .disclaimer {
             margin-top: 20px;
@@ -411,6 +449,12 @@
             <div class="result-header">
                 <div class="result-title">您的专业测评报告</div>
                 <div class="result-subtitle">基于SCL-90症状自评量表的详细分析</div>
+            </div>
+
+            <!-- 保存图片按钮 -->
+            <div class="save-buttons">
+                <button class="save-btn" id="save-image-btn">💾 保存报告为图片</button>
+                <button class="save-btn" id="new-test-btn">🔄 重新测试</button>
             </div>
 
             <!-- 总体分数 -->
@@ -596,6 +640,76 @@
             document.getElementById('progress-text').textContent = `进度: ${currentQuestion + 1}/${questions.length}`;
         }
 
+        // 设置保存功能
+        function setupSaveFunction() {
+            const saveButton = document.getElementById('save-image-btn');
+            const newTestButton = document.getElementById('new-test-btn');
+            
+            // 保存图片功能
+            saveButton.addEventListener('click', function() {
+                saveButton.disabled = true;
+                saveButton.textContent = '正在生成图片...';
+                
+                // 临时隐藏保存按钮，避免出现在截图中
+                const saveButtons = document.querySelector('.save-buttons');
+                const originalDisplay = saveButtons.style.display;
+                saveButtons.style.display = 'none';
+                
+                // 使用html2canvas生成图片
+                html2canvas(document.getElementById('result-container'), {
+                    scale: 2, // 提高图片质量
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    // 将canvas转换为图片URL
+                    const imageURL = canvas.toDataURL('image/png');
+                    
+                    // 创建下载链接
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = imageURL;
+                    downloadLink.download = `SCL-90测评报告_${new Date().toLocaleDateString()}.png`;
+                    
+                    // 触发下载
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    // 恢复按钮状态
+                    saveButtons.style.display = originalDisplay;
+                    saveButton.disabled = false;
+                    saveButton.textContent = '💾 保存报告为图片';
+                    
+                }).catch(error => {
+                    console.error('生成图片失败:', error);
+                    alert('保存失败，请稍后重试');
+                    
+                    // 恢复按钮状态
+                    saveButtons.style.display = originalDisplay;
+                    saveButton.disabled = false;
+                    saveButton.textContent = '💾 保存报告为图片';
+                });
+            });
+            
+            // 重新测试功能
+            newTestButton.addEventListener('click', function() {
+                if (confirm('确定要重新开始测试吗？当前结果将会丢失。')) {
+                    // 重置所有状态
+                    currentQuestion = 0;
+                    answers = new Array(questions.length).fill(null);
+                    
+                    // 显示测试页面，隐藏结果页面
+                    document.getElementById('question-container').style.display = 'block';
+                    document.getElementById('result-container').style.display = 'none';
+                    document.getElementById('progress-text').style.display = 'block';
+                    document.querySelector('.progress-container').style.display = 'block';
+                    
+                    // 重新初始化第一题
+                    showQuestion(currentQuestion);
+                    updateProgress();
+                }
+            });
+        }
+
         // 显示结果
         function showResults() {
             // 检查是否所有题目都已回答
@@ -719,6 +833,9 @@
             document.getElementById('result-container').style.display = 'block';
             document.getElementById('progress-text').style.display = 'none';
             document.querySelector('.progress-container').style.display = 'none';
+
+            // 设置保存功能
+            setTimeout(setupSaveFunction, 100);
         }
 
         // 页面加载完成后初始化
