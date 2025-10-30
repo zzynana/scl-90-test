@@ -187,6 +187,14 @@
         }
 
         /* 报告部分样式 */
+        .section-title {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+            font-weight: 600;
+        }
         .score-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -264,7 +272,7 @@
             padding: 12px;
             border-radius: 8px;
             border-left: 4px solid #3498db;
-            margin-top: 15px;
+            margin-bottom: 10px;
         }
         .explanation-title {
             font-weight: 600;
@@ -393,13 +401,16 @@
             </div>
 
             <!-- 各因子分析 - 紧凑表格 -->
+            <div class="section-title">各因子得分及测试情况</div>
             <div id="factor-analysis"></div>
 
-            <!-- 分级标准 - 紧凑表格 -->
-            <div id="criteria-container"></div>
-
             <!-- 因子解释说明 -->
+            <div class="section-title">因子解释说明</div>
             <div id="factor-explanations"></div>
+
+            <!-- 分级标准 - 紧凑表格 -->
+            <div class="section-title">测试情况分级标准</div>
+            <div id="criteria-container"></div>
 
             <!-- 结果解释 -->
             <div class="interpretation-content" id="overall-interpretation"></div>
@@ -473,6 +484,7 @@
         const options = ["没有", "很轻", "中等", "偏重", "严重"];
         let currentQuestion = 0;
         let answers = new Array(questions.length).fill(null);
+        let factorLevels = {}; // 存储每个因子的程度
 
         // 初始化页面
         function init() {
@@ -619,6 +631,7 @@
                     // 重置所有状态
                     currentQuestion = 0;
                     answers = new Array(questions.length).fill(null);
+                    factorLevels = {};
                     
                     // 显示测试页面，隐藏结果页面
                     document.getElementById('question-container').style.display = 'block';
@@ -690,6 +703,9 @@
                     levelClass = "level-severe"; levelText = "重度";
                 }
 
+                // 存储因子程度
+                factorLevels[factorName] = { levelClass, levelText };
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${factorName}</td>
@@ -741,15 +757,16 @@
             `;
             criteriaContainer.appendChild(criteriaTable);
 
-            // 因子解释
+            // 因子解释 - 包含个人测试结果
             const factorExplanationsContainer = document.getElementById('factor-explanations');
             factorExplanationsContainer.innerHTML = '';
 
             for (const [factorName, explanation] of Object.entries(factorExplanations)) {
+                const userLevel = factorLevels[factorName];
                 const explanationElement = document.createElement('div');
                 explanationElement.className = 'factor-explanation';
                 explanationElement.innerHTML = `
-                    <div class="explanation-title">${factorName}</div>
+                    <div class="explanation-title">${factorName}：<span class="level-badge ${userLevel.levelClass}">${userLevel.levelText}</span></div>
                     <div>${explanation}</div>
                 `;
                 factorExplanationsContainer.appendChild(explanationElement);
