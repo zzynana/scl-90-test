@@ -187,9 +187,6 @@
         }
 
         /* 报告部分样式 */
-        .report-section {
-            margin-bottom: 25px;
-        }
         .score-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -214,52 +211,34 @@
             color: #7f8c8d;
         }
         
-        /* 因子分析网格布局 */
-        .factor-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+        /* 紧凑的列表样式 */
+        .compact-table {
+            width: 100%;
+            margin: 15px 0;
+            border-collapse: collapse;
+            font-size: 0.85rem;
         }
-        @media (min-width: 480px) {
-            .factor-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        .factor-item {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .factor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .factor-name {
+        .compact-table th {
+            background: #f8f9fa;
+            padding: 10px 8px;
+            text-align: center;
             font-weight: 600;
             color: #2c3e50;
-            font-size: 1rem;
+            border-bottom: 2px solid #e9ecef;
         }
-        .factor-scores {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .score-item {
-            text-align: center;
+        .compact-table td {
             padding: 8px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            text-align: center;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        .compact-table tr:last-child td {
+            border-bottom: none;
         }
         .level-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
         }
         .level-normal { 
@@ -294,64 +273,6 @@
             font-size: 0.95rem;
         }
         
-        /* 分级标准卡片 */
-        .criteria-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        @media (min-width: 480px) {
-            .criteria-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        .criteria-card {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .criteria-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .criteria-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-right: 10px;
-        }
-        .criteria-normal { 
-            background: #e8f6f3; 
-            color: #27ae60; 
-        }
-        .criteria-mild { 
-            background: #fff3e0; 
-            color: #f39c12; 
-        }
-        .criteria-moderate { 
-            background: #ffeaa7; 
-            color: #e67e22; 
-        }
-        .criteria-severe { 
-            background: #ffebee; 
-            color: #e74c3c; 
-        }
-        .criteria-range {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        .criteria-desc {
-            font-size: 0.85rem;
-            color: #666;
-            line-height: 1.4;
-        }
-        
         /* 结果解释 */
         .interpretation-content {
             background: #f8f9fa;
@@ -374,7 +295,7 @@
             margin-bottom: 0;
         }
 
-        /* 新增保存按钮样式 */
+        /* 保存按钮样式 */
         .save-buttons {
             display: flex;
             gap: 10px;
@@ -453,7 +374,7 @@
 
             <!-- 保存图片按钮 -->
             <div class="save-buttons">
-                <button class="save-btn" id="save-image-btn">💾 保存报告为图片</button>
+                <button class="save-btn" id="save-image-btn">💾 生成报告图片</button>
                 <button class="save-btn" id="new-test-btn">🔄 重新测试</button>
             </div>
 
@@ -471,14 +392,14 @@
                 </div>
             </div>
 
-            <!-- 各因子分析 -->
+            <!-- 各因子分析 - 紧凑表格 -->
             <div id="factor-analysis"></div>
+
+            <!-- 分级标准 - 紧凑表格 -->
+            <div id="criteria-container"></div>
 
             <!-- 因子解释说明 -->
             <div id="factor-explanations"></div>
-
-            <!-- 分级标准 -->
-            <div class="criteria-grid" id="criteria-container"></div>
 
             <!-- 结果解释 -->
             <div class="interpretation-content" id="overall-interpretation"></div>
@@ -664,29 +585,31 @@
                     // 将canvas转换为图片URL
                     const imageURL = canvas.toDataURL('image/png');
                     
-                    // 创建下载链接
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = imageURL;
-                    downloadLink.download = `SCL-90测评报告_${new Date().toLocaleDateString()}.png`;
+                    // 创建临时图片元素用于分享
+                    const tempImg = document.createElement('img');
+                    tempImg.src = imageURL;
+                    tempImg.style.maxWidth = '100%';
+                    tempImg.style.height = 'auto';
                     
-                    // 触发下载
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
+                    // 替换整个页面内容为图片预览
+                    document.body.innerHTML = '';
+                    document.body.style.padding = '20px';
+                    document.body.style.background = 'white';
+                    document.body.appendChild(tempImg);
                     
-                    // 恢复按钮状态
-                    saveButtons.style.display = originalDisplay;
-                    saveButton.disabled = false;
-                    saveButton.textContent = '💾 保存报告为图片';
+                    // 添加操作提示
+                    const tip = document.createElement('div');
+                    tip.innerHTML = '<p style="text-align: center; margin-top: 20px; color: #666;">长按图片保存或分享</p>';
+                    document.body.appendChild(tip);
                     
                 }).catch(error => {
                     console.error('生成图片失败:', error);
-                    alert('保存失败，请稍后重试');
+                    alert('生成失败，请稍后重试');
                     
                     // 恢复按钮状态
                     saveButtons.style.display = originalDisplay;
                     saveButton.disabled = false;
-                    saveButton.textContent = '💾 保存报告为图片';
+                    saveButton.textContent = '💾 生成报告图片';
                 });
             });
             
@@ -726,19 +649,26 @@
             document.getElementById('total-score').textContent = totalScore;
             document.getElementById('average-score').textContent = averageScore;
 
-            // 生成因子分析部分
+            // 生成因子分析部分 - 紧凑表格
             const factorAnalysisContainer = document.getElementById('factor-analysis');
             factorAnalysisContainer.innerHTML = '';
 
-            const factorExplanationsContainer = document.getElementById('factor-explanations');
-            factorExplanationsContainer.innerHTML = '';
+            const factorTable = document.createElement('table');
+            factorTable.className = 'compact-table';
+            factorTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>因子名称</th>
+                        <th>总分</th>
+                        <th>平均分</th>
+                        <th>测试情况</th>
+                    </tr>
+                </thead>
+                <tbody id="factor-table-body">
+                </tbody>
+            `;
 
-            const criteriaContainer = document.getElementById('criteria-container');
-            criteriaContainer.innerHTML = '';
-
-            // 创建因子分析网格
-            const factorGrid = document.createElement('div');
-            factorGrid.className = 'factor-grid';
+            const factorTableBody = factorTable.querySelector('#factor-table-body');
 
             for (const [factorName, questionIndices] of Object.entries(factors)) {
                 // 计算因子分数
@@ -749,70 +679,81 @@
                 const factorAverage = (factorTotal / questionIndices.length).toFixed(2);
                 
                 // 判断程度
-                let level = "", levelClass = "", levelText = "";
+                let levelClass = "", levelText = "";
                 if (factorAverage < 1.5) {
-                    level = "正常范围"; levelClass = "level-normal"; levelText = "正常";
+                    levelClass = "level-normal"; levelText = "正常";
                 } else if (factorAverage < 2.0) {
-                    level = "轻微症状"; levelClass = "level-mild"; levelText = "轻微";
+                    levelClass = "level-mild"; levelText = "轻微";
                 } else if (factorAverage < 3.0) {
-                    level = "中度症状"; levelClass = "level-moderate"; levelText = "中度";
+                    levelClass = "level-moderate"; levelText = "中度";
                 } else {
-                    level = "重度症状"; levelClass = "level-severe"; levelText = "重度";
+                    levelClass = "level-severe"; levelText = "重度";
                 }
 
-                // 创建因子卡片
-                const factorElement = document.createElement('div');
-                factorElement.className = 'factor-item';
-                factorElement.innerHTML = `
-                    <div class="factor-header">
-                        <div class="factor-name">${factorName}</div>
-                        <span class="level-badge ${levelClass}">${levelText}</span>
-                    </div>
-                    <div class="factor-scores">
-                        <div class="score-item">
-                            <div class="score-label">总分</div>
-                            <div class="score-value">${factorTotal}</div>
-                        </div>
-                        <div class="score-item">
-                            <div class="score-label">平均分</div>
-                            <div class="score-value">${factorAverage}</div>
-                        </div>
-                    </div>
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${factorName}</td>
+                    <td>${factorTotal}</td>
+                    <td>${factorAverage}</td>
+                    <td><span class="level-badge ${levelClass}">${levelText}</span></td>
                 `;
-                factorGrid.appendChild(factorElement);
+                factorTableBody.appendChild(row);
+            }
 
-                // 创建因子解释
+            factorAnalysisContainer.appendChild(factorTable);
+
+            // 生成分级标准 - 紧凑表格
+            const criteriaContainer = document.getElementById('criteria-container');
+            criteriaContainer.innerHTML = '';
+
+            const criteriaTable = document.createElement('table');
+            criteriaTable.className = 'compact-table';
+            criteriaTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>程度</th>
+                        <th>平均分范围</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="level-badge level-normal">正常</span></td>
+                        <td>1.0-1.5</td>
+                        <td>无明显症状</td>
+                    </tr>
+                    <tr>
+                        <td><span class="level-badge level-mild">轻微</span></td>
+                        <td>1.5-2.0</td>
+                        <td>症状轻微或偶尔出现</td>
+                    </tr>
+                    <tr>
+                        <td><span class="level-badge level-moderate">中度</span></td>
+                        <td>2.0-3.0</td>
+                        <td>症状明显但不影响日常生活</td>
+                    </tr>
+                    <tr>
+                        <td><span class="level-badge level-severe">重度</span></td>
+                        <td>3.0-5.0</td>
+                        <td>症状严重且明显影响日常生活</td>
+                    </tr>
+                </tbody>
+            `;
+            criteriaContainer.appendChild(criteriaTable);
+
+            // 因子解释
+            const factorExplanationsContainer = document.getElementById('factor-explanations');
+            factorExplanationsContainer.innerHTML = '';
+
+            for (const [factorName, explanation] of Object.entries(factorExplanations)) {
                 const explanationElement = document.createElement('div');
                 explanationElement.className = 'factor-explanation';
                 explanationElement.innerHTML = `
-                    <div class="explanation-title">${factorName}：<span class="${levelClass}">${levelText}</span></div>
-                    <div>${factorExplanations[factorName]}</div>
+                    <div class="explanation-title">${factorName}</div>
+                    <div>${explanation}</div>
                 `;
                 factorExplanationsContainer.appendChild(explanationElement);
             }
-
-            factorAnalysisContainer.appendChild(factorGrid);
-
-            // 创建分级标准卡片
-            const criteriaData = [
-                { level: "正常范围", class: "criteria-normal", range: "平均分1.0-1.5", desc: "无明显症状" },
-                { level: "轻微", class: "criteria-mild", range: "平均分1.5-2.0", desc: "症状轻微或偶尔出现" },
-                { level: "中度", class: "criteria-moderate", range: "平均分2.0-3.0", desc: "症状明显但不影响日常生活" },
-                { level: "重度", class: "criteria-severe", range: "平均分3.0-5.0", desc: "症状严重且明显影响日常生活" }
-            ];
-
-            criteriaData.forEach(criteria => {
-                const criteriaElement = document.createElement('div');
-                criteriaElement.className = 'criteria-card';
-                criteriaElement.innerHTML = `
-                    <div class="criteria-header">
-                        <span class="criteria-badge ${criteria.class}">${criteria.level}</span>
-                    </div>
-                    <div class="criteria-range">${criteria.range}</div>
-                    <div class="criteria-desc">${criteria.desc}</div>
-                `;
-                criteriaContainer.appendChild(criteriaElement);
-            });
 
             // 温馨解读
             const warmInterpretation = `
