@@ -184,23 +184,15 @@
             font-size: 0.9rem;
         }
 
-        /* 新增的报告部分样式 */
+        /* 报告部分样式 */
         .report-section {
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            color: #2c3e50;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #3498db;
-            font-weight: 600;
+            margin-bottom: 25px;
         }
         .score-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .score-card {
             background: white;
@@ -219,11 +211,23 @@
             font-size: 0.9rem;
             color: #7f8c8d;
         }
+        
+        /* 因子分析网格布局 */
+        .factor-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 480px) {
+            .factor-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
         .factor-item {
             background: white;
             padding: 15px;
             border-radius: 10px;
-            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .factor-header {
@@ -272,32 +276,102 @@
             background: #ffebee; 
             color: #e74c3c; 
         }
+        
+        /* 因子解释 */
         .factor-explanation {
             background: #f8f9fa;
             padding: 12px;
             border-radius: 8px;
             border-left: 4px solid #3498db;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         .explanation-title {
             font-weight: 600;
             color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        /* 分级标准卡片 */
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        @media (min-width: 480px) {
+            .criteria-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .criteria-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .criteria-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .criteria-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .criteria-normal { 
+            background: #e8f6f3; 
+            color: #27ae60; 
+        }
+        .criteria-mild { 
+            background: #fff3e0; 
+            color: #f39c12; 
+        }
+        .criteria-moderate { 
+            background: #ffeaa7; 
+            color: #e67e22; 
+        }
+        .criteria-severe { 
+            background: #ffebee; 
+            color: #e74c3c; 
+        }
+        .criteria-range {
+            font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 5px;
         }
-        .overall-interpretation {
+        .criteria-desc {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        /* 结果解释 */
+        .interpretation-content {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 12px;
-            margin-top: 10px;
             border-left: 4px solid #2ecc71;
+            margin: 20px 0;
         }
-        .criteria-box {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid #f39c12;
+        .interpretation-content h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
+        .interpretation-content p {
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .interpretation-content p:last-child {
+            margin-bottom: 0;
+        }
+        
         .disclaimer {
             margin-top: 20px;
             padding: 15px;
@@ -339,63 +413,39 @@
                 <div class="result-subtitle">基于SCL-90症状自评量表的详细分析</div>
             </div>
 
-            <!-- 第一部分：总分、单项平均分 -->
-            <div class="report-section">
-                <div class="section-title">第一部分：总体分数</div>
-                <div class="score-cards">
-                    <div class="score-card">
-                        <div class="score-label">总分</div>
-                        <div class="score-value" id="total-score">0</div>
-                        <div class="score-label">理论范围: 90-450分</div>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-label">总均分</div>
-                        <div class="score-value" id="average-score">0.00</div>
-                        <div class="score-label">范围: 1-5分</div>
-                    </div>
+            <!-- 总体分数 -->
+            <div class="score-cards">
+                <div class="score-card">
+                    <div class="score-label">总分</div>
+                    <div class="score-value" id="total-score">0</div>
+                    <div class="score-label">理论范围: 90-450分</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-label">总均分</div>
+                    <div class="score-value" id="average-score">0.00</div>
+                    <div class="score-label">范围: 1-5分</div>
                 </div>
             </div>
 
-            <!-- 第二部分：各因子得分 -->
-            <div class="report-section">
-                <div class="section-title">第二部分：各因子分析</div>
-                <div id="factor-analysis">
-                    <!-- 因子分析内容由JavaScript动态生成 -->
-                </div>
-            </div>
+            <!-- 各因子分析 -->
+            <div id="factor-analysis"></div>
 
-            <!-- 第三部分：因子解释说明 -->
-            <div class="report-section">
-                <div class="section-title">第三部分：因子解释说明</div>
-                <div id="factor-explanations">
-                    <!-- 因子解释内容由JavaScript动态生成 -->
-                </div>
-            </div>
+            <!-- 因子解释说明 -->
+            <div id="factor-explanations"></div>
 
-            <!-- 第四部分：结果解释 -->
-            <div class="report-section">
-                <div class="section-title">第四部分：结果解读与建议</div>
-                <div class="overall-interpretation" id="overall-interpretation">
-                    <!-- 总体解读内容由JavaScript动态生成 -->
-                </div>
-                
-                <div class="criteria-box">
-                    <h4>测试情况分级标准：</h4>
-                    <p><strong>正常范围：</strong>平均分1.0-1.5分，无明显症状</p>
-                    <p><strong>轻微：</strong>平均分1.5-2.0分，症状轻微或偶尔出现</p>
-                    <p><strong>中度：</strong>平均分2.0-3.0分，症状明显但不影响日常生活</p>
-                    <p><strong>重度：</strong>平均分3.0-5.0分，症状严重且明显影响日常生活</p>
-                </div>
+            <!-- 分级标准 -->
+            <div class="criteria-grid" id="criteria-container"></div>
 
-                <div class="overall-interpretation">
-                    <h4>专业参考标准：</h4>
-                    <p>按中国常模结果：</p>
-                    <ul>
-                        <li>如果SCL-90总分超过<strong>160分</strong>，单项均分超过<strong>2分</strong>就应作进一步检查</li>
-                        <li>标准分为大于<strong>200分</strong>说明你有很明显的心理问题，可求助于心理咨询</li>
-                        <li>大于<strong>250分</strong>则比较严重，需要作医学上的详细检查，很可能要做针对性的心理治疗或在医生的指导下服药</li>
-                    </ul>
-                </div>
+            <!-- 结果解释 -->
+            <div class="interpretation-content" id="overall-interpretation"></div>
+
+            <!-- 专业参考标准 -->
+            <div class="interpretation-content">
+                <h4>专业参考标准</h4>
+                <p>按中国常模结果：</p>
+                <p>• 如果SCL-90总分超过<strong>160分</strong>，单项均分超过<strong>2分</strong>就应作进一步检查</p>
+                <p>• 标准分为大于<strong>200分</strong>说明你有很明显的心理问题，可求助于心理咨询</p>
+                <p>• 大于<strong>250分</strong>则比较严重，需要作医学上的详细检查，很可能要做针对性的心理治疗或在医生的指导下服药</p>
             </div>
 
             <div class="disclaimer">
@@ -423,7 +473,7 @@
             "睡得不稳不深", "有想摔坏或破坏东西的冲动", "有一些别人没有的想法或念头", "感到对别人神经过敏", "在商店或电影院等人多的地方感到不自在",
             "感到任何事情都很困难", "一阵阵恐惧或惊恐", "感到在公共场合吃东西很不舒服", "经常与人争论", "单独一人时神经很紧张",
             "别人对您的成绩没有作出恰当的评价", "即使和别人在一起也感到孤单", "感到坐立不安心神不定", "感到自己没有什么价值", "感到熟悉的东西变成陌生或不象是真的",
-            "大叫或摔东西", "害怕会在公共场合昏倒", "感到别人想占您的便宜", "为一些有关“性”的想法而很苦恼", "您认为应该因为自己的过错而受到惩罚",
+            "大叫或摔东西", "害怕会在公共场合昏倒", "感到别人想占您的便宜", "为一些有关\"性\"的想法而很苦恼", "您认为应该因为自己的过错而受到惩罚",
             "感到要赶快把事情做完", "感到自己的身体有严重问题", "从未感到和其他人很亲近", "感到自己有罪", "感到自己的脑子有毛病"
         ];
 
@@ -569,6 +619,13 @@
             const factorExplanationsContainer = document.getElementById('factor-explanations');
             factorExplanationsContainer.innerHTML = '';
 
+            const criteriaContainer = document.getElementById('criteria-container');
+            criteriaContainer.innerHTML = '';
+
+            // 创建因子分析网格
+            const factorGrid = document.createElement('div');
+            factorGrid.className = 'factor-grid';
+
             for (const [factorName, questionIndices] of Object.entries(factors)) {
                 // 计算因子分数
                 let factorTotal = 0;
@@ -577,7 +634,7 @@
                 });
                 const factorAverage = (factorTotal / questionIndices.length).toFixed(2);
                 
-                // 判断程度（按照您提供的标准修正）
+                // 判断程度
                 let level = "", levelClass = "", levelText = "";
                 if (factorAverage < 1.5) {
                     level = "正常范围"; levelClass = "level-normal"; levelText = "正常";
@@ -589,7 +646,7 @@
                     level = "重度症状"; levelClass = "level-severe"; levelText = "重度";
                 }
 
-                // 第二部分：因子得分
+                // 创建因子卡片
                 const factorElement = document.createElement('div');
                 factorElement.className = 'factor-item';
                 factorElement.innerHTML = `
@@ -608,9 +665,9 @@
                         </div>
                     </div>
                 `;
-                factorAnalysisContainer.appendChild(factorElement);
+                factorGrid.appendChild(factorElement);
 
-                // 第三部分：因子解释
+                // 创建因子解释
                 const explanationElement = document.createElement('div');
                 explanationElement.className = 'factor-explanation';
                 explanationElement.innerHTML = `
@@ -620,12 +677,38 @@
                 factorExplanationsContainer.appendChild(explanationElement);
             }
 
-            // 第四部分：温馨解读（使用您提供的文案）
+            factorAnalysisContainer.appendChild(factorGrid);
+
+            // 创建分级标准卡片
+            const criteriaData = [
+                { level: "正常范围", class: "criteria-normal", range: "平均分1.0-1.5", desc: "无明显症状" },
+                { level: "轻微", class: "criteria-mild", range: "平均分1.5-2.0", desc: "症状轻微或偶尔出现" },
+                { level: "中度", class: "criteria-moderate", range: "平均分2.0-3.0", desc: "症状明显但不影响日常生活" },
+                { level: "重度", class: "criteria-severe", range: "平均分3.0-5.0", desc: "症状严重且明显影响日常生活" }
+            ];
+
+            criteriaData.forEach(criteria => {
+                const criteriaElement = document.createElement('div');
+                criteriaElement.className = 'criteria-card';
+                criteriaElement.innerHTML = `
+                    <div class="criteria-header">
+                        <span class="criteria-badge ${criteria.class}">${criteria.level}</span>
+                    </div>
+                    <div class="criteria-range">${criteria.range}</div>
+                    <div class="criteria-desc">${criteria.desc}</div>
+                `;
+                criteriaContainer.appendChild(criteriaElement);
+            });
+
+            // 温馨解读
             const warmInterpretation = `
                 <h4>致亲爱的你：</h4>
                 <p>请用从容的心态来看待本次测试。无论分数如何，请一定记得，我们始终都在你身边。</p>
+                
                 <p>SCL-90 心理健康自评量表涵盖了情绪状态、思维模式、人际关系、生活习惯等多个维度，它就像一面温柔的镜子，能帮你更清晰地看见自己当下的心理状态。需要知道的是，量表得分仅仅是近期心理感受的投射。</p>
+                
                 <p>若某些因子得分较高，或许只是说明你最近在这些方面暂时感受到了压力或困扰，但这绝不等于你存在严重的问题。很多时候，短期的心理波动本就是生活的常态——可能是学习的节奏、工作的挑战，或是人际交往中的小插曲带来的暂时影响。</p>
+                
                 <p>如果你发现自己在多个维度上长期感到不适，不妨多给自己一些关注：试着调整自己的作息规律，找到适合自己的放松方式，或是和信任的人好好倾诉聊聊。倘若情绪已经悄悄影响到了日常生活，且靠自己难以调节，也请不要犹豫，及时寻求专业的心理咨询或帮助，这并不是软弱，而是对自己的负责。要知道，心理健康和身体健康同样重要，而你，本就值得被好好关心与坚定支持。</p>
             `;
 
