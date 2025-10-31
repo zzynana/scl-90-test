@@ -354,40 +354,140 @@
             text-align: center;
         }
         
-        /* 错误提示样式 */
-        .error-message {
+        /* 漏题提示样式 */
+        .missing-questions-modal {
             display: none;
-            background: #ffebee;
-            color: #c62828;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .missing-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+            text-align: left;
+            background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            margin: 15px 0;
-            text-align: center;
-            border-left: 4px solid #e53935;
         }
-        .reload-btn {
-            background: #e53935;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            margin-top: 10px;
+        .missing-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .missing-item:hover {
+            background: #e9ecef;
+            padding-left: 10px;
+        }
+        .missing-item:last-child {
+            border-bottom: none;
+        }
+        .missing-number {
             font-weight: 600;
+            color: #e74c3c;
+            margin-right: 8px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #goto-first-missing {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        #close-modal {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        /* 题目导航指示器 */
+        .question-indicator {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .indicator-answered {
+            background: #2ecc71;
+        }
+        .indicator-missing {
+            background: #e74c3c;
+        }
+        .indicator-current {
+            border: 2px solid #3498db;
+            transform: scale(1.2);
         }
     </style>
 </head>
 <body>
+    <!-- 漏题提示模态框 -->
+    <div class="missing-questions-modal" id="missing-questions-modal">
+        <div class="modal-content">
+            <div class="modal-title">⚠️ 还有题目未完成</div>
+            <p>您还有 <strong id="missing-count">0</strong> 道题目未作答，请完成所有题目后再提交。</p>
+            
+            <div class="missing-list" id="missing-list">
+                <!-- 漏题列表会在这里动态生成 -->
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn" id="goto-first-missing">跳转到第一道漏题</button>
+                <button class="modal-btn" id="close-modal">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>SCL-90症状自评量表</h1>
             <div class="subtitle">请根据您最近一周的实际感觉进行测评</div>
         </header>
 
-        <!-- 错误提示区域 -->
-        <div class="error-message" id="error-message">
-            <p>应用加载失败，请尝试刷新页面</p>
-            <button class="reload-btn" onclick="window.location.reload()">刷新页面</button>
+        <!-- 题目导航指示器 -->
+        <div class="question-indicator" id="question-indicator" style="display: none;">
+            <!-- 题目状态点会在这里动态生成 -->
         </div>
 
         <div class="progress-container">
@@ -407,18 +507,17 @@
         </div>
 
         <div id="result-container">
+            <!-- 结果页面内容保持不变 -->
             <div class="result-header">
                 <div class="result-title">您的专业测评报告</div>
                 <div class="result-subtitle">基于SCL-90症状自评量表的详细分析</div>
             </div>
 
-            <!-- 保存图片按钮 -->
             <div class="save-buttons">
                 <button class="save-btn" id="save-image-btn">💾 生成报告图片</button>
                 <button class="save-btn" id="new-test-btn">🔄 重新测试</button>
             </div>
 
-            <!-- 总体分数 -->
             <div class="score-cards">
                 <div class="score-card">
                     <div class="score-label">总分</div>
@@ -432,22 +531,17 @@
                 </div>
             </div>
 
-            <!-- 各因子分析 - 紧凑表格 -->
             <div class="section-title">各因子得分及测试情况</div>
             <div id="factor-analysis"></div>
 
-            <!-- 因子解释说明 -->
             <div class="section-title">因子解释说明</div>
             <div id="factor-explanations"></div>
 
-            <!-- 分级标准 - 紧凑表格 -->
             <div class="section-title">测试情况分级标准</div>
             <div id="criteria-container"></div>
 
-            <!-- 结果解释 -->
             <div class="interpretation-content" id="overall-interpretation"></div>
 
-            <!-- 专业参考标准 -->
             <div class="interpretation-content">
                 <h4>专业参考标准</h4>
                 <p>按中国常模结果：</p>
@@ -463,15 +557,6 @@
     </div>
 
     <script>
-        // 错误处理
-        window.addEventListener('error', function(e) {
-            console.error('JavaScript错误:', e.error);
-            document.getElementById('error-message').style.display = 'block';
-            document.getElementById('question-container').style.display = 'none';
-            document.getElementById('progress-text').style.display = 'none';
-            document.querySelector('.progress-container').style.display = 'none';
-        });
-
         // SCL-90完整题目
         const questions = [
             "头痛", "神经过敏，心中不踏实", "头脑中有不必要的想法或字句盘旋", "头昏或昏倒", "对异性的兴趣减退",
@@ -494,7 +579,7 @@
             "感到要赶快把事情做完", "感到自己的身体有严重问题", "从未感到和其他人很亲近", "感到自己有罪", "感到自己的脑子有毛病"
         ];
 
-        // 因子分组
+        // 因子分组和其他常量保持不变...
         const factors = {
             "躯体化": [0, 3, 11, 26, 39, 41, 47, 51, 52, 55, 57],
             "强迫症状": [2, 8, 9, 27, 37, 44, 45, 50, 54, 64],
@@ -508,7 +593,6 @@
             "其他（睡眠饮食）": [18, 43, 58, 59, 64, 65]
         };
 
-        // 因子解释说明库
         const factorExplanations = {
             "躯体化": "主要反映主观的身体不适感，包括心血管、胃肠道、呼吸系统的不适，以及头痛、背痛、肌肉酸痛等躯体症状。",
             "强迫症状": "指那些明知没有必要，但又无法摆脱的无意义思想、冲动和行为，如反复检查、洗涤、计数等。",
@@ -525,27 +609,21 @@
         const options = ["没有", "很轻", "中等", "偏重", "严重"];
         let currentQuestion = 0;
         let answers = new Array(questions.length).fill(null);
-        let factorLevels = {}; // 存储每个因子的程度
+        let factorLevels = {};
 
         // 初始化页面
         function init() {
-            try {
-                showQuestion(currentQuestion);
-                updateProgress();
-                
-                document.getElementById('prev-btn').addEventListener('click', prevQuestion);
-                document.getElementById('next-btn').addEventListener('click', nextQuestion);
-                document.getElementById('submit-btn').addEventListener('click', showResults);
-                
-                // 检查html2canvas是否加载成功
-                if (typeof html2canvas === 'undefined') {
-                    console.warn('html2canvas未正确加载，图片保存功能可能不可用');
-                }
-            } catch (error) {
-                console.error('初始化失败:', error);
-                document.getElementById('error-message').style.display = 'block';
-                document.getElementById('question-container').style.display = 'none';
-            }
+            showQuestion(currentQuestion);
+            updateProgress();
+            updateQuestionIndicator();
+            
+            document.getElementById('prev-btn').addEventListener('click', prevQuestion);
+            document.getElementById('next-btn').addEventListener('click', nextQuestion);
+            document.getElementById('submit-btn').addEventListener('click', showResults);
+            
+            // 模态框按钮事件
+            document.getElementById('goto-first-missing').addEventListener('click', gotoFirstMissing);
+            document.getElementById('close-modal').addEventListener('click', closeModal);
         }
 
         // 显示题目
@@ -564,13 +642,12 @@
                 optionsContainer.appendChild(optionElement);
             });
             
-            // 更新按钮状态
             document.getElementById('prev-btn').style.display = index === 0 ? 'none' : 'block';
             document.getElementById('next-btn').style.display = index === questions.length - 1 ? 'none' : 'block';
             document.getElementById('submit-btn').style.display = index === questions.length - 1 ? 'block' : 'none';
             
-            // 更新下一题按钮状态
             updateNextButton();
+            updateQuestionIndicator();
         }
 
         // 选择选项
@@ -578,7 +655,6 @@
             answers[currentQuestion] = optionIndex;
             showQuestion(currentQuestion);
             
-            // 自动跳转到下一题（如果不是最后一题）
             if (currentQuestion < questions.length - 1) {
                 setTimeout(() => {
                     currentQuestion++;
@@ -593,11 +669,7 @@
         // 更新下一题按钮状态
         function updateNextButton() {
             const nextButton = document.getElementById('next-btn');
-            if (answers[currentQuestion] === null) {
-                nextButton.disabled = true;
-            } else {
-                nextButton.disabled = false;
-            }
+            nextButton.disabled = answers[currentQuestion] === null;
         }
 
         // 上一题
@@ -625,36 +697,105 @@
             document.getElementById('progress-text').textContent = `进度: ${currentQuestion + 1}/${questions.length}`;
         }
 
+        // 更新题目导航指示器
+        function updateQuestionIndicator() {
+            const indicator = document.getElementById('question-indicator');
+            indicator.innerHTML = '';
+            
+            // 如果已经回答了部分题目，显示指示器
+            const answeredCount = answers.filter(answer => answer !== null).length;
+            if (answeredCount > 0) {
+                indicator.style.display = 'flex';
+            } else {
+                indicator.style.display = 'none';
+                return;
+            }
+            
+            questions.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = `indicator-dot ${answers[index] !== null ? 'indicator-answered' : 'indicator-missing'} ${index === currentQuestion ? 'indicator-current' : ''}`;
+                dot.title = `题目 ${index + 1}: ${answers[index] !== null ? '已答' : '未答'}`;
+                dot.addEventListener('click', () => {
+                    currentQuestion = index;
+                    showQuestion(currentQuestion);
+                    updateProgress();
+                });
+                indicator.appendChild(dot);
+            });
+        }
+
+        // 检查是否有漏题
+        function checkMissingQuestions() {
+            const missingQuestions = [];
+            answers.forEach((answer, index) => {
+                if (answer === null) {
+                    missingQuestions.push(index);
+                }
+            });
+            return missingQuestions;
+        }
+
+        // 显示漏题提示
+        function showMissingQuestionsModal(missingQuestions) {
+            const modal = document.getElementById('missing-questions-modal');
+            const missingCount = document.getElementById('missing-count');
+            const missingList = document.getElementById('missing-list');
+            
+            missingCount.textContent = missingQuestions.length;
+            missingList.innerHTML = '';
+            
+            missingQuestions.forEach(questionIndex => {
+                const item = document.createElement('div');
+                item.className = 'missing-item';
+                item.innerHTML = `<span class="missing-number">${questionIndex + 1}</span>${questions[questionIndex]}`;
+                item.addEventListener('click', () => {
+                    currentQuestion = questionIndex;
+                    showQuestion(currentQuestion);
+                    updateProgress();
+                    closeModal();
+                });
+                missingList.appendChild(item);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        // 跳转到第一道漏题
+        function gotoFirstMissing() {
+            const missingQuestions = checkMissingQuestions();
+            if (missingQuestions.length > 0) {
+                currentQuestion = missingQuestions[0];
+                showQuestion(currentQuestion);
+                updateProgress();
+                closeModal();
+            }
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('missing-questions-modal').style.display = 'none';
+        }
+
         // 设置保存功能
         function setupSaveFunction() {
             const saveButton = document.getElementById('save-image-btn');
             const newTestButton = document.getElementById('new-test-btn');
             
-            // 保存图片功能
             saveButton.addEventListener('click', function() {
-                if (typeof html2canvas === 'undefined') {
-                    alert('图片生成功能暂时不可用，请稍后重试');
-                    return;
-                }
-                
                 saveButton.disabled = true;
                 saveButton.textContent = '正在生成图片...';
                 
-                // 临时隐藏保存按钮，避免出现在截图中
                 const saveButtons = document.querySelector('.save-buttons');
                 const originalDisplay = saveButtons.style.display;
                 saveButtons.style.display = 'none';
                 
-                // 使用html2canvas生成图片
                 html2canvas(document.getElementById('result-container'), {
-                    scale: 2, // 提高图片质量
+                    scale: 2,
                     useCORS: true,
                     logging: false
                 }).then(canvas => {
-                    // 将canvas转换为图片URL
                     const imageURL = canvas.toDataURL('image/png');
                     
-                    // 创建下载链接
                     const downloadLink = document.createElement('a');
                     downloadLink.href = imageURL;
                     downloadLink.download = 'SCL-90测评报告.png';
@@ -662,7 +803,6 @@
                     downloadLink.click();
                     document.body.removeChild(downloadLink);
                     
-                    // 恢复按钮状态
                     saveButtons.style.display = originalDisplay;
                     saveButton.disabled = false;
                     saveButton.textContent = '💾 生成报告图片';
@@ -671,28 +811,24 @@
                     console.error('生成图片失败:', error);
                     alert('生成失败，请稍后重试');
                     
-                    // 恢复按钮状态
                     saveButtons.style.display = originalDisplay;
                     saveButton.disabled = false;
                     saveButton.textContent = '💾 生成报告图片';
                 });
             });
             
-            // 重新测试功能
             newTestButton.addEventListener('click', function() {
                 if (confirm('确定要重新开始测试吗？当前结果将会丢失。')) {
-                    // 重置所有状态
                     currentQuestion = 0;
                     answers = new Array(questions.length).fill(null);
                     factorLevels = {};
                     
-                    // 显示测试页面，隐藏结果页面
                     document.getElementById('question-container').style.display = 'block';
                     document.getElementById('result-container').style.display = 'none';
                     document.getElementById('progress-text').style.display = 'block';
                     document.querySelector('.progress-container').style.display = 'block';
+                    document.getElementById('question-indicator').style.display = 'none';
                     
-                    // 重新初始化第一题
                     showQuestion(currentQuestion);
                     updateProgress();
                 }
@@ -701,9 +837,10 @@
 
         // 显示结果
         function showResults() {
-            // 检查是否所有题目都已回答
-            if (answers.includes(null)) {
-                alert('请完成所有题目后再提交');
+            // 检查漏题
+            const missingQuestions = checkMissingQuestions();
+            if (missingQuestions.length > 0) {
+                showMissingQuestionsModal(missingQuestions);
                 return;
             }
 
@@ -711,11 +848,10 @@
             const totalScore = answers.reduce((sum, answer) => sum + (answer + 1), 0);
             const averageScore = (totalScore / questions.length).toFixed(2);
 
-            // 显示总分和均分
             document.getElementById('total-score').textContent = totalScore;
             document.getElementById('average-score').textContent = averageScore;
 
-            // 生成因子分析部分 - 紧凑表格
+            // 生成因子分析部分
             const factorAnalysisContainer = document.getElementById('factor-analysis');
             factorAnalysisContainer.innerHTML = '';
 
@@ -737,14 +873,12 @@
             const factorTableBody = factorTable.querySelector('#factor-table-body');
 
             for (const [factorName, questionIndices] of Object.entries(factors)) {
-                // 计算因子分数
                 let factorTotal = 0;
                 questionIndices.forEach(index => {
                     factorTotal += answers[index] + 1;
                 });
                 const factorAverage = (factorTotal / questionIndices.length).toFixed(2);
                 
-                // 判断程度
                 let levelClass = "", levelText = "";
                 if (factorAverage < 1.5) {
                     levelClass = "level-normal"; levelText = "正常";
@@ -756,7 +890,6 @@
                     levelClass = "level-severe"; levelText = "重度";
                 }
 
-                // 存储因子程度
                 factorLevels[factorName] = { levelClass, levelText };
 
                 const row = document.createElement('tr');
@@ -771,7 +904,7 @@
 
             factorAnalysisContainer.appendChild(factorTable);
 
-            // 生成分级标准 - 紧凑表格
+            // 生成分级标准
             const criteriaContainer = document.getElementById('criteria-container');
             criteriaContainer.innerHTML = '';
 
@@ -788,69 +921,4 @@
                 <tbody>
                     <tr>
                         <td><span class="level-badge level-normal">正常</span></td>
-                        <td>1.0-1.5</td>
-                        <td>无明显症状</td>
-                    </tr>
-                    <tr>
-                        <td><span class="level-badge level-mild">轻微</span></td>
-                        <td>1.5-2.0</td>
-                        <td>症状轻微或偶尔出现</td>
-                    </tr>
-                    <tr>
-                        <td><span class="level-badge level-moderate">中度</span></td>
-                        <td>2.0-3.0</td>
-                        <td>症状明显但不影响日常生活</td>
-                    </tr>
-                    <tr>
-                        <td><span class="level-badge level-severe">重度</span></td>
-                        <td>3.0-5.0</td>
-                        <td>症状严重且明显影响日常生活</td>
-                    </tr>
-                </tbody>
-            `;
-            criteriaContainer.appendChild(criteriaTable);
-
-            // 因子解释 - 包含个人测试结果
-            const factorExplanationsContainer = document.getElementById('factor-explanations');
-            factorExplanationsContainer.innerHTML = '';
-
-            for (const [factorName, explanation] of Object.entries(factorExplanations)) {
-                const userLevel = factorLevels[factorName];
-                const explanationElement = document.createElement('div');
-                explanationElement.className = 'factor-explanation';
-                explanationElement.innerHTML = `
-                    <div class="explanation-title">${factorName}：<span class="level-badge ${userLevel.levelClass}">${userLevel.levelText}</span></div>
-                    <div>${explanation}</div>
-                `;
-                factorExplanationsContainer.appendChild(explanationElement);
-            }
-
-            // 温馨解读
-            const warmInterpretation = `
-                <h4>致亲爱的你：</h4>
-                <p>请用从容的心态来看待本次测试。无论分数如何，请一定记得，我们始终都在你身边。</p>
-                
-                <p>SCL-90 心理健康自评量表涵盖了情绪状态、思维模式、人际关系、生活习惯等多个维度，它就像一面温柔的镜子，能帮你更清晰地看见自己当下的心理状态。需要知道的是，量表得分仅仅是近期心理感受的投射。</p>
-                
-                <p>若某些因子得分较高，或许只是说明你最近在这些方面暂时感受到了压力或困扰，但这绝不等于你存在严重的问题。很多时候，短期的心理波动本就是生活的常态——可能是学习的节奏、工作的挑战，或是人际交往中的小插曲带来的暂时影响。</p>
-                
-                <p>如果你发现自己在多个维度上长期感到不适，不妨多给自己一些关注：试着调整自己的作息规律，找到适合自己的放松方式，或是和信任的人好好倾诉聊聊。倘若情绪已经悄悄影响到了日常生活，且靠自己难以调节，也请不要犹豫，及时寻求专业的心理咨询或帮助，这并不是软弱，而是对自己的负责。要知道，心理健康和身体健康同样重要，而你，本就值得被好好关心与坚定支持。</p>
-            `;
-
-            document.getElementById('overall-interpretation').innerHTML = warmInterpretation;
-
-            // 显示报告页面
-            document.getElementById('question-container').style.display = 'none';
-            document.getElementById('result-container').style.display = 'block';
-            document.getElementById('progress-text').style.display = 'none';
-            document.querySelector('.progress-container').style.display = 'none';
-
-            // 设置保存功能
-            setTimeout(setupSaveFunction, 100);
-        }
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
+                        <td>1.0-1
