@@ -320,7 +320,7 @@
         <!-- 漏题提示 -->
         <div class="missing-alert" id="missing-alert">
             <p>您还有 <span id="missing-count">0</span> 道题目未完成！</p>
-            <button onclick="gotoFirstMissing()">跳转到第一道漏题</button>
+            <button onclick="startMissingQuestionsFlow()">按顺序完成漏题</button>
         </div>
 
         <div class="progress-container">
@@ -449,6 +449,8 @@
         let currentQuestion = 0;
         let answers = new Array(questions.length).fill(null);
         let factorLevels = {};
+        let isMissingQuestionsMode = false; // 标记是否在漏题模式
+        let missingQuestions = []; // 存储所有未答题目索引
 
         // 初始化页面
         function init() {
@@ -490,15 +492,37 @@
             answers[currentQuestion] = optionIndex;
             showQuestion(currentQuestion);
             
-            // 自动跳转到下一题（如果不是最后一题）
-            if (currentQuestion < questions.length - 1) {
-                setTimeout(() => {
-                    currentQuestion++;
-                    showQuestion(currentQuestion);
-                    updateProgress();
-                }, 200); // 稍微延迟让用户看到选择效果
+            // 如果在漏题模式，跳转到下一个漏题
+            if (isMissingQuestionsMode) {
+                const nextMissingIndex = missingQuestions.findIndex(q => q > currentQuestion);
+                if (nextMissingIndex !== -1) {
+                    // 还有漏题，跳转到下一个
+                    setTimeout(() => {
+                        currentQuestion = missingQuestions[nextMissingIndex];
+                        showQuestion(currentQuestion);
+                        updateProgress();
+                    }, 200);
+                } else {
+                    // 所有漏题完成，跳转到最后一题
+                    setTimeout(() => {
+                        isMissingQuestionsMode = false;
+                        currentQuestion = questions.length - 1;
+                        showQuestion(currentQuestion);
+                        updateProgress();
+                        alert('所有漏题已完成！现在可以提交测试。');
+                    }, 200);
+                }
             } else {
-                updateNextButton();
+                // 正常模式，自动跳转到下一题
+                if (currentQuestion < questions.length - 1) {
+                    setTimeout(() => {
+                        currentQuestion++;
+                        showQuestion(currentQuestion);
+                        updateProgress();
+                    }, 200);
+                } else {
+                    updateNextButton();
+                }
             }
         }
 
@@ -538,11 +562,19 @@
             return answers.filter(answer => answer === null).length;
         }
 
-        // 跳转到第一道漏题
-        function gotoFirstMissing() {
-            const firstMissing = answers.findIndex(answer => answer === null);
-            if (firstMissing !== -1) {
-                currentQuestion = firstMissing;
+        // 获取所有漏题的索引
+        function getMissingQuestions() {
+            return answers
+                .map((answer, index) => answer === null ? index : -1)
+                .filter(index => index !== -1);
+        }
+
+        // 开始漏题流程
+        function startMissingQuestionsFlow() {
+            missingQuestions = getMissingQuestions();
+            if (missingQuestions.length > 0) {
+                isMissingQuestionsMode = true;
+                currentQuestion = missingQuestions[0]; // 跳转到第一个漏题
                 showQuestion(currentQuestion);
                 updateProgress();
                 document.getElementById('missing-alert').style.display = 'none';
@@ -752,6 +784,8 @@
                 currentQuestion = 0;
                 answers = new Array(questions.length).fill(null);
                 factorLevels = {};
+                isMissingQuestionsMode = false;
+                missingQuestions = [];
                 
                 document.getElementById('question-container').style.display = 'block';
                 document.getElementById('result-container').style.display = 'none';
