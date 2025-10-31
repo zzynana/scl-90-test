@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SCL-90症状自评量表</title>
+    <!-- 引入 html2canvas 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -267,6 +269,10 @@
             cursor: pointer;
             text-align: center;
         }
+        #save-image-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
         #new-test-btn {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
@@ -280,6 +286,27 @@
             font-size: 0.8rem;
             color: #856404;
             text-align: center;
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -320,7 +347,13 @@
             </div>
 
             <div class="save-buttons">
+                <button class="save-btn" id="save-image-btn">💾 保存报告图片</button>
                 <button class="save-btn" id="new-test-btn">🔄 重新测试</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>正在生成图片...</div>
             </div>
 
             <div class="score-cards">
@@ -425,6 +458,7 @@
             document.getElementById('prev-btn').addEventListener('click', prevQuestion);
             document.getElementById('next-btn').addEventListener('click', nextQuestion);
             document.getElementById('submit-btn').addEventListener('click', submitTest);
+            document.getElementById('save-image-btn').addEventListener('click', saveAsImage);
             document.getElementById('new-test-btn').addEventListener('click', newTest);
         }
 
@@ -451,10 +485,21 @@
             updateNextButton();
         }
 
-        // 选择选项
+        // 选择选项 - 恢复自动跳转功能
         function selectOption(optionIndex) {
             answers[currentQuestion] = optionIndex;
             showQuestion(currentQuestion);
+            
+            // 自动跳转到下一题（如果不是最后一题）
+            if (currentQuestion < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestion++;
+                    showQuestion(currentQuestion);
+                    updateProgress();
+                }, 200); // 稍微延迟让用户看到选择效果
+            } else {
+                updateNextButton();
+            }
         }
 
         // 更新下一题按钮状态
@@ -653,6 +698,52 @@
             document.getElementById('progress-text').style.display = 'none';
             document.querySelector('.progress-container').style.display = 'none';
             document.getElementById('missing-alert').style.display = 'none';
+        }
+
+        // 保存为图片
+        function saveAsImage() {
+            const saveButton = document.getElementById('save-image-btn');
+            const loading = document.getElementById('loading');
+            
+            saveButton.disabled = true;
+            saveButton.textContent = '生成中...';
+            loading.style.display = 'block';
+            
+            // 临时隐藏保存按钮
+            const saveButtons = document.querySelector('.save-buttons');
+            saveButtons.style.display = 'none';
+            
+            html2canvas(document.getElementById('result-container'), {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const imageURL = canvas.toDataURL('image/png');
+                
+                // 创建下载链接
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageURL;
+                downloadLink.download = 'SCL-90测评报告.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // 恢复按钮状态
+                saveButtons.style.display = 'flex';
+                saveButton.disabled = false;
+                saveButton.textContent = '💾 保存报告图片';
+                loading.style.display = 'none';
+                
+            }).catch(error => {
+                console.error('生成图片失败:', error);
+                alert('生成失败，请稍后重试');
+                
+                // 恢复按钮状态
+                saveButtons.style.display = 'flex';
+                saveButton.disabled = false;
+                saveButton.textContent = '💾 保存报告图片';
+                loading.style.display = 'none';
+            });
         }
 
         // 重新测试
